@@ -21,6 +21,6 @@ void hello(void);
 
 void hello(void) {
 
-	kprintf("Ciao!\n");
+	kprintf("Ciao AAAAA!\n");
 	return;
 }
