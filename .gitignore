@@ -50,5 +50,6 @@ os161/toolbuild.tgz
 .atom/**
 
 \.dropbox-dist/
+\.gitconfig
 
 \.gitconfig
