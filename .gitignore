@@ -45,4 +45,8 @@ workspace/**
 .xsession-errors
 .xsession-errors.old
 os161/toolbuild.tgz
+.dropbox/**
+.fontconfig/**
+.atom/**
 
+\.dropbox-dist/
