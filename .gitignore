@@ -48,6 +48,8 @@ os161/toolbuild.tgz
 .dropbox/**
 .fontconfig/**
 .atom/**
-
-\.dropbox-dist/
-\.gitconfig
+.dropbox-dist/**
+.gitconfig/**
+.node-gyp/**
+.nano_history
+.npm/**
