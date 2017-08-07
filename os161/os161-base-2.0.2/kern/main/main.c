@@ -50,7 +50,6 @@
 #include <test.h>
 #include <version.h>
 #include "autoconf.h"  // for pseudoconfig
-#include "opt-hello.h"
 
 
 /*
@@ -210,7 +209,9 @@ void
 kmain(char *arguments)
 {
 	boot();
+  kprintf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 	menu(arguments);
+
 
 	/* Should not get here */
 }
