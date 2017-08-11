@@ -1,0 +1,2 @@
+defualt:
+	./dac.sh
