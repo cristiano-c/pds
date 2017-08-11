@@ -209,8 +209,7 @@ void
 kmain(char *arguments)
 {
 	boot();
-  kprintf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-	menu(arguments);
+  menu(arguments);
 
 
 	/* Should not get here */
