@@ -1,0 +1,1 @@
+Possiamo far finta di considerare questa dir come se fosse il prodotto finale e dove ci finisce dentro tutti gli eseguibili che vengono compilati (per esempio quelli che provengono da 'userland'). E' da qui che poi bisogna testare l'os.
