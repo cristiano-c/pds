@@ -1,6 +1,5 @@
 .bash_history
 .bash_logout
-.bashrc
 bin/**
 .cache/**
 .codeblocks/**
