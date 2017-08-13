@@ -118,6 +118,8 @@ function mymenu () {
 	echo "menu dei miei comandi:"
 	echo "   [compileuser] - esegue bmake solo per i programmi utente (dentro userland)"
 	echo "   [compilekernel] - compila il kernel e lancia os161"
+	echo "   [compilekernel_v] - compila il kenerl a stadi"
+	echo "   [kcompile] - compila il kernel a stadi senza mai uscire"
 }
 
 #my own function
@@ -159,6 +161,7 @@ function compilekernel () {
 	sys161 kernel;
 }
 
+#La funzione compila il kernel a stadi e per ogni stadio chiede se continuare o chiudere il terminale.
 function compilekernel_v () {
 	
 	# definizione costanti
@@ -241,3 +244,95 @@ function compilekernel_v () {
 	# compilazione finita
 	echo "la compilazione e' finita"
 }
+
+
+
+#La funziona compila il kernel a stadi e non esce mai (esce solo quando ha finito)
+
+function kcompile () {
+	
+	# definizione costanti
+	configStr="DUMBVM"
+	
+	# compilazione del kernel in modalità verbose
+
+	# verifica degli argomenti (quale kernel compilare?)
+	# il kernel di default e' "DUMBVM"
+        # ho definito un kernel come argomento?
+        if [ $# -eq 1 ];
+        	then configStr=$1 # si -> usalo
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf configStr;
+        	else configStr="DUMBVM" # no -> usa quello di default
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf *;
+        fi
+
+
+	# inizio compilazione
+
+	# esecuzione della fase C1
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+
+
+	while true; do
+    		read -p "Procedere con la fase C2? [y/n]" yn
+    		case $yn in
+        		[Yy]* ) break;;
+        		[Nn]* ) exit;;
+        		* ) echo "Please answer yes or no.";;
+    		esac
+	done
+
+	# esecuzione della fase C2
+
+
+        while true; do
+
+		cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+		./config $configStr;
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+		bmake depend;
+
+                read -p "Procedere con la fase C3? [y/n]" yn
+                case $yn in
+                        [Yy]* ) break;;
+                        [Nn]* ) ;;
+                        * ) echo "Please answer yes or no.";;
+                esac
+        done
+
+	# esecuzione della fase C3
+	
+
+        while true; do
+
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+	bmake depend;
+	bmake;
+
+                read -p "Procedere con la fase C4? [y/n]" yn
+                case $yn in
+                        [Yy]* ) break;;
+                        [Nn]* ) ;;
+                        * ) echo "Please answer yes or no.";;
+                esac
+        done
+
+	# esecuzione della fase C4
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+	bmake depend;
+	bmake;
+	bmake install;
+	cd /home/pds/pds-os161/root;
+	sys161 kernel;
+
+	# compilazione finita
+	echo "la compilazione e' finita"
+}
+
