@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# kerne di default = DUMBVM
+# kernel di default = DUMBVM
 configStr="DUMBVM"
 
 # ho definito un kernel come argomento?
