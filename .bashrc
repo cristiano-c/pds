@@ -171,12 +171,19 @@ function compilekernel_v () {
         # ho definito un kernel come argomento?
         if [ $# -eq 1 ];
         	then configStr=$1 # si -> usalo
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf configStr;
         	else configStr="DUMBVM" # no -> usa quello di default
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf *;
         fi
+
 
 	# inizio compilazione
 
 	# esecuzione della fase C1
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
 
 
 	while true; do
@@ -189,6 +196,11 @@ function compilekernel_v () {
 	done
 
 	# esecuzione della fase C2
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+	bmake depend;
+
 
         while true; do
                 read -p "Procedere con la fase C3? [y/n]" yn
@@ -200,6 +212,12 @@ function compilekernel_v () {
         done
 
 	# esecuzione della fase C3
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+	bmake depend;
+	bmake;
+
 
         while true; do
                 read -p "Procedere con la fase C4? [y/n]" yn
@@ -211,6 +229,14 @@ function compilekernel_v () {
         done
 
 	# esecuzione della fase C4
+	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+	./config $configStr;
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
+	bmake depend;
+	bmake;
+	bmake install;
+	cd /home/pds/pds-os161/root;
+	sys161 kernel;
 
 	# compilazione finita
 	echo "la compilazione e' finita"
