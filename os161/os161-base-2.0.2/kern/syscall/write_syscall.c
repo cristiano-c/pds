@@ -8,6 +8,12 @@
 #include <vfs.h>
 #include <current.h>
 
+/*
+int fd = file id
+const void* buf =
+puntatore a stringa
+numero di caratteri da stampare
+*/
 int sys_write(int fd, const void* buf, size_t nbytes, int* retval){
 //int sys_write(userptr_t buffer, int nBytes, int *retval) {
   size_t i;
