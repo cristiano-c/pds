@@ -1,3 +1,8 @@
+#Lo script cancellera i codici sorgenti e oggetti generati da config kernel, bmake depend, bmake. 
+#Lo script può ricevere un parametro che è il kernel che si vuole cancellare. 
+#Se non riceve nessun parametro cancellerà tutti i kernel.
+
+
 #!/bin/sh
 configStr="DUMBVM"
 if [ $# -eq 1 ];
