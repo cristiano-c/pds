@@ -1,3 +1,4 @@
+/*
 #include <current.h>
 #include <kern/errno.h>
 #include <kern/unistd.h>
@@ -7,6 +8,20 @@
 #include <uio.h>
 #include <vfs.h>
 #include <vnode.h>
+*/
+
+
+
+#include <types.h>
+#include <kern/errno.h>
+#include <kern/unistd.h>
+#include <lib.h>
+#include <uio.h>
+#include <syscall.h>
+#include <vnode.h>
+#include <vfs.h>
+#include <current.h>
+
 
 #define jumpwrite false
 
