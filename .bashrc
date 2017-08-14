@@ -260,10 +260,15 @@ function kcompile () {
 	# il kernel di default e' "DUMBVM"
         # ho definito un kernel come argomento?
         if [ $# -eq 1 ];
-        	then configStr=$1 # si -> usalo
+        	then configStr=$1 
+		
+		# si -> usalo
 		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
 		rm -rf configStr;
-        	else configStr="DUMBVM" # no -> usa quello di default
+        	
+		else configStr="DUMBVM" 
+		# no -> usa quello di default
+	
 		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
 		rm -rf *;
         fi
@@ -271,34 +276,41 @@ function kcompile () {
 
 	# inizio compilazione
 
-	# esecuzione della fase C1
-	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
-	./config $configStr;
-
-
+	# esecuzione della fase C1 -> ./config
 	while true; do
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf configStr;
+		cd /home/pds/os161/os161-base-2.0.2/kern/conf;
+		./config $configStr;
     		read -p "Procedere con la fase C2? [y/n]" yn
     		case $yn in
         		[Yy]* ) break;;
-        		[Nn]* ) exit;;
+        		[Nn]* ) ;;
+			[Ee]* ) 
+			cd 
+			return;;
         		* ) echo "Please answer yes or no.";;
     		esac
 	done
 
-	# esecuzione della fase C2
+	# esecuzione della fase C2 -> make depend
 
 
         while true; do
-
+		cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+		rm -rf configStr;
 		cd /home/pds/os161/os161-base-2.0.2/kern/conf;
 		./config $configStr;
 		cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
 		bmake depend;
-
                 read -p "Procedere con la fase C3? [y/n]" yn
                 case $yn in
                         [Yy]* ) break;;
                         [Nn]* ) ;;
+			[Ee]* )
+			cd 
+			return;;
+
                         * ) echo "Please answer yes or no.";;
                 esac
         done
@@ -307,7 +319,8 @@ function kcompile () {
 	
 
         while true; do
-
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+	rm -rf configStr;        	
 	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
 	./config $configStr;
 	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
@@ -318,11 +331,17 @@ function kcompile () {
                 case $yn in
                         [Yy]* ) break;;
                         [Nn]* ) ;;
+			[Ee]* ) 
+			cd 
+			return;;
+
                         * ) echo "Please answer yes or no.";;
                 esac
         done
 
 	# esecuzione della fase C4
+	cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+	rm -rf configStr;	
 	cd /home/pds/os161/os161-base-2.0.2/kern/conf;
 	./config $configStr;
 	cd /home/pds/os161/os161-base-2.0.2/kern/compile/$configStr;
