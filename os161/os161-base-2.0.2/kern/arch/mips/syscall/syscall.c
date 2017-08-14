@@ -117,13 +117,6 @@ syscall(struct trapframe *tf)
 		   err = sys_write((const void*) tf->tf_a1, (size_t) tf->tf_a2, (int*)&retval);
 		   break;
 
-    case  SYS_read:
-         //si dovrebbe usare -> int sys_read(int fd, const void* buf, size_t buflen, int* retval)
-         //Per semplicità si usa quella di sotto.
-   		   err = int sys_read(const void* buf, size_t buflen, int* retval);
-   		   break;
-
-
 		default:
 		    kprintf("Unknown syscall %d\n", callno);
 		    err = ENOSYS;

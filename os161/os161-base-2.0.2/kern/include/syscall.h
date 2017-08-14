@@ -62,9 +62,5 @@ int sys___time(userptr_t user_seconds, userptr_t user_nanoseconds);
 //int sys_write(int fd, const void* buf, size_t nbytes, int* retval);
 int sys_write(const void* buf, size_t nbytes, int* retval);
 
-//int sys_read(int fd, const void* buf, size_t buflen, int* retval)
-int sys_read(const void* buf, size_t buflen, int* retval);
-
-
 
 #endif /* _SYSCALL_H_ */
