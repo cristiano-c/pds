@@ -112,8 +112,10 @@ syscall(struct trapframe *tf)
 
 			/* Add stuff here */
 		case SYS_write:
-			err = sys_write((int)tf->tf_a0, (const void*) tf->tf_a1, (size_t) tf->tf_a2, (int*)&retval);
-		 break;
+      //si dovrebbe usare -> int sys_write(int fd, const void* buf, size_t nbytes, int* retval);
+      //Per semplicità si usa quella di sotto.
+		   err = sys_write((const void*) tf->tf_a1, (size_t) tf->tf_a2, (int*)&retval);
+		   break;
 
 		default:
 		    kprintf("Unknown syscall %d\n", callno);
