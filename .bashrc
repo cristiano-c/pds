@@ -354,4 +354,10 @@ function kcompile () {
 	# compilazione finita
 	echo "la compilazione e' finita"
 }
+function kdelete () 
+{
+cd /home/pds/os161/os161-base-2.0.2/kern/compile;
+rm -rf *
+cd $home
+}
 
