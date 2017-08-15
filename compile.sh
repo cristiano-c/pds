@@ -13,4 +13,3 @@ bmake;
 bmake install;
 cd /home/pds/pds-os161/root;
 sys161 kernel;
-
