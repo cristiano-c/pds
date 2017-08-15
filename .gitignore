@@ -67,4 +67,12 @@ os161/toolbuild.tgz
 
 \.gitconfig
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 \.bashrc~
+=======
+\.kde/
+>>>>>>> Stashed changes
+=======
+\.kde/
+>>>>>>> Stashed changes
