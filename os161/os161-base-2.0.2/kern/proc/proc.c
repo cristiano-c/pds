@@ -62,6 +62,7 @@ struct proc *
 proc_create(const char *name)
 {
 	struct proc *proc;
+	char c = 'w';
 
 	proc = kmalloc(sizeof(*proc));
 	if (proc == NULL) {
@@ -81,6 +82,9 @@ proc_create(const char *name)
 
 	/* VFS fields */
 	proc->p_cwd = NULL;
+
+	proc->wait = cv_create(&c);
+	proc->lock = lock_create(&c);
 
 	return proc;
 }
@@ -168,6 +172,9 @@ proc_destroy(struct proc *proc)
 	KASSERT(proc->p_numthreads == 0);
 	spinlock_cleanup(&proc->p_lock);
 
+	 cv_destroy(proc->wait);
+	 lock_destroy(proc->lock);
+
 	kfree(proc->p_name);
 	kfree(proc);
 }
@@ -246,6 +253,23 @@ proc_addthread(struct proc *proc, struct thread *t)
 	splx(spl);
 
 	return 0;
+}
+
+
+int proc_wait(struct proc *p){
+	int code;
+
+	lock_acquire(p->lock);
+	
+	cv_wait(p->wait,p->lock);
+
+	lock_release(p->lock);
+
+	code = p->exit_code;
+
+	proc_destroy(p);
+
+	return code;
 }
 
 /*

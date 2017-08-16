@@ -40,6 +40,7 @@
 #include <vfs.h>
 #include <sfs.h>
 #include <syscall.h>
+#include <synch.h>
 #include <test.h>
 #include "opt-sfs.h"
 #include "opt-net.h"
@@ -51,6 +52,8 @@
 #define _PATH_SHELL "/bin/sh"
 
 #define MAXMENUARGS  16
+
+
 
 ////////////////////////////////////////////////////////////
 //
@@ -113,7 +116,7 @@ int
 common_prog(int nargs, char **args)
 {
 	struct proc *proc;
-	int result;
+	int result, exit_code;
 
 	/* Create a process for the new program to run in. */
 	proc = proc_create_runprogram(args[0] /* name */);
@@ -135,6 +138,10 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
+
+	exit_code = proc_wait(proc);
+
+	kprintf("exit code: %d\n", exit_code);
 
 	return 0;
 }

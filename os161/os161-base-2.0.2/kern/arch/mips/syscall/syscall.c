@@ -108,65 +108,88 @@ syscall(struct trapframe *tf)
 		err = sys___time((userptr_t)tf->tf_a0,
 				 (userptr_t)tf->tf_a1);
 		break;
+		
+            case SYS_write:
+	   	err = sys_write((int)tf->tf_a0,(const char *)tf->tf_a1, (int)tf->tf_a2, &retval);
+		break;
+		
+	    case SYS_read:
+		err = sys_read((int)tf->tf_a0,( char *)tf->tf_a1, (int)tf->tf_a2, &retval);
+		break;
+
+	    case SYS__exit:
+		err = sys__exit((int)tf->tf_a0);
+		break;
+
+	    case SYS_open:
+		retval = sys_open((const char *)tf->tf_a0, (int)tf->tf_a1);
+		err = retval < 3;
+		break;
+
+	    case SYS_close:
+		err = sys_close((int)tf->tf_a0);
+		break;
+		
+	    case SYS_remove:
+		//err = sys_remove((char *)tf->tf_a0);
+		break;
+
+	    case SYS_fork:
+		err = sys_fork(tf, &retval);
+		break;
+
+	    default:
+		kprintf("Unknown syscall %d\n", callno);
+		err = ENOSYS;
+		break;
+	}
 
 
-			/* Add stuff here */
-		case SYS_write:
-      //si dovrebbe usare -> int sys_write(int fd, const void* buf, size_t nbytes, int* retval);
-      //Per semplicità si usa quella di sotto.
-		   err = sys_write((const void*) tf->tf_a1, (size_t) tf->tf_a2, (int*)&retval);
-		   break;
+	if (err) {
+		/*
+		 * Return the error code. This gets converted at
+		 * userlevel to a return value of -1 and the error
+		 * code in errno.
+		 */
+		tf->tf_v0 = err;
+		tf->tf_a3 = 1;      /* signal an error */
+	}
+	else {
+		/* Success. */
+		tf->tf_v0 = retval;
+		tf->tf_a3 = 0;      /* signal no error */
+	}
 
-		default:
-		    kprintf("Unknown syscall %d\n", callno);
-		    err = ENOSYS;
-		    break;
-		          }
+	/*
+	 * Now, advance the program counter, to avoid restarting
+	 * the syscall over and over again.
+	 */
 
+	tf->tf_epc += 4;
 
-		          if (err) {
-		    /*
-		     * Return the error code. This gets converted at
-		     * userlevel to a return value of -1 and the error
-		     * code in errno.
-		     */
-		    tf->tf_v0 = err;
-		    tf->tf_a3 = 1;      /* signal an error */
-		          }
-		          else {
-		    /* Success. */
-		    tf->tf_v0 = retval;
-		    tf->tf_a3 = 0;      /* signal no error */
-		          }
+	/* Make sure the syscall code didn't forget to lower spl */
+	KASSERT(curthread->t_curspl == 0);
+	/* ...or leak any spinlocks */
+	KASSERT(curthread->t_iplhigh_count == 0);
+}
 
-		          /*
-		           * Now, advance the program counter, to avoid restarting
-		           * the syscall over and over again.
-		           */
+/*
+ * Enter user mode for a newly forked process.
+ *
+ * This function is provided as a reminder. You need to write
+ * both it and the code that calls it.
+ *
+ * Thus, you can trash it and do things another way if you prefer.
+ */
+void
+enter_forked_process(struct trapframe *tf)
+{
+	struct trapframe stack_tf;
+	
+	stack_tf = *tf;
+	stack_tf.tf_a3=0;
+	stack_tf.tf_v0 = 0; //return value
+	stack_tf.tf_epc +=4;
 
-		          tf->tf_epc += 4;
-
-		          /* Make sure the syscall code didn't forget to lower spl */
-		          KASSERT(curthread->t_curspl == 0);
-		          /* ...or leak any spinlocks */
-		          KASSERT(curthread->t_iplhigh_count == 0);
-		  }
-
-		  /*
-		   * Enter user mode for a newly forked process.
-		   *
-		   * This function is provided as a reminder. You need to write
-		   * both it and the code that calls it.
-		   *
-		   * Thus, you can trash it and do things another way if you prefer.
-		   */
-		  void
-		  enter_forked_process(struct trapframe *tf)
-		  {
-				tf->tf_v0 = 0;
-		    tf->tf_a3 = 0;
-		    tf->tf_epc += 4;
-		    mips_usermode(tf);
-		  }
-
-/*End */
+	mips_usermode(&stack_tf);
+}

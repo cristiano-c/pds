@@ -50,6 +50,7 @@
 #include <test.h>
 #include <version.h>
 #include "autoconf.h"  // for pseudoconfig
+#include "opt-hello.h"
 
 
 /*
@@ -63,6 +64,10 @@
  */
 extern const int buildversion;
 extern const char buildconfig[];
+
+#if OPT_HELLO
+void hello(void);
+#endif
 
 /*
  * Copyright message for the OS/161 base code.
@@ -209,8 +214,12 @@ void
 kmain(char *arguments)
 {
 	boot();
-  menu(arguments);
+	
+	#if OPT_HELLO
+		hello();
+	#endif
 
+	menu(arguments);
 
 	/* Should not get here */
 }

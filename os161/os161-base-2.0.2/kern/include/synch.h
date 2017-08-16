@@ -74,12 +74,18 @@ void V(struct semaphore *);
  */
 struct lock {
         char *lk_name;
+
+	struct wchan  *lk_wchan;
+	struct spinlock lk_lock;
+
+	volatile struct thread *thread_with_lock;
+
+        volatile bool locked;
         // add what you need here
         // (don't forget to mark things volatile as needed)
 };
-
 struct lock *lock_create(const char *name);
-void lock_destroy(struct lock *);
+void lock_acquire(struct lock *);
 
 /*
  * Operations:
@@ -87,15 +93,14 @@ void lock_destroy(struct lock *);
  *                   same time.
  *    lock_release - Free the lock. Only the thread holding the lock may do
  *                   this.
- *    lock_do_i_hold - Return true if the current thread holds the lock;
+ *    lock_do_i_hold - Return true if the current thread holds the lock; 
  *                   false otherwise.
  *
  * These operations must be atomic. You get to write them.
  */
-void lock_acquire(struct lock *);
 void lock_release(struct lock *);
 bool lock_do_i_hold(struct lock *);
-
+void lock_destroy(struct lock *);
 
 /*
  * Condition variable.
@@ -115,6 +120,9 @@ struct cv {
         char *cv_name;
         // add what you need here
         // (don't forget to mark things volatile as needed)
+	struct wchan * cv_wchan;
+	struct spinlock lk_lock;
+	
 };
 
 struct cv *cv_create(const char *name);

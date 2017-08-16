@@ -376,7 +376,8 @@ file      vfs/devnull.c
 file      syscall/loadelf.c
 file      syscall/runprogram.c
 file      syscall/time_syscalls.c
-file      syscall/write_syscall.c
+file 	  syscall/stdio_syscall.c
+file 	  syscall/syscall_exit.c
 
 #
 # Startup and initialization
@@ -385,6 +386,8 @@ file      syscall/write_syscall.c
 file      main/main.c
 file      main/menu.c
 
+defoption hello
+optfile  hello main/hello.c
 
 ########################################
 #                                      #

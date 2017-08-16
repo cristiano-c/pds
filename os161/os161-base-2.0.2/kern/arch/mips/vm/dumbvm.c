@@ -64,10 +64,33 @@
  */
 static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
 
+static struct spinlock freemem_lock = SPINLOCK_INITIALIZER;
+static unsigned char *freeRamFrames = NULL;//Dichiaro a NULL cosi finche non sono inizializzati il s.o. usa direttamente la stealmem
+static unsigned long *allocSize = NULL;//Dichiaro a NULL cosi finche non sono inizializzati il s.o. usa direttamente la stealmem
+static int nRamFrames = 0;
+
+static paddr_t getfreeppages(unsigned long npages);
+static int freeppages(paddr_t addr, unsigned long npages);
+
 void
 vm_bootstrap(void)
 {
-	/* Do nothing. */
+	int i;
+	 nRamFrames = ((int)ram_getsize())/PAGE_SIZE; 
+	/* alloc freeRamFrame and allocSize */ 
+	freeRamFrames = kmalloc(sizeof(unsigned char)*nRamFrames);
+	 if (freeRamFrames==NULL) return; 
+		allocSize = kmalloc(sizeof(unsigned long)*nRamFrames);
+	 if (allocSize==NULL) { 
+		 /* reset to disable this vm management */
+		 freeRamFrames = NULL; 
+		return;
+	 }
+	 for (i=0; i<nRamFrames; i++) { 
+		 freeRamFrames[i] = (unsigned char)0;
+		 allocSize[i] = 0; 
+	 }
+
 }
 
 /*
@@ -96,12 +119,16 @@ getppages(unsigned long npages)
 {
 	paddr_t addr;
 
+	 /* try freed pages first */
+	 addr = getfreeppages(npages);
+	if (addr != 0) return addr;
+
+	 /* otherwise stealmem */
 	spinlock_acquire(&stealmem_lock);
-
 	addr = ram_stealmem(npages);
-
 	spinlock_release(&stealmem_lock);
-	return addr;
+
+	 return addr;
 }
 
 /* Allocate/free some kernel-space virtual pages */
@@ -121,9 +148,13 @@ alloc_kpages(unsigned npages)
 void
 free_kpages(vaddr_t addr)
 {
-	/* nothing - leak the memory. */
+	if (allocSize!=NULL) {
+		 paddr_t paddr = addr - MIPS_KSEG0;
+		 long first = paddr/PAGE_SIZE;
+		 KASSERT(nRamFrames>first);
+		 freeppages(paddr, allocSize[first]);
+	 }
 
-	(void)addr;
 }
 
 void
@@ -257,6 +288,11 @@ void
 as_destroy(struct addrspace *as)
 {
 	dumbvm_can_sleep();
+
+	freeppages(as->as_pbase1, as->as_npages1);
+	freeppages(as->as_pbase2, as->as_npages2);
+	freeppages(as->as_stackpbase, DUMBVM_STACKPAGES);
+
 	kfree(as);
 }
 
@@ -424,4 +460,47 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 
 	*ret = new;
 	return 0;
+}
+
+static paddr_t getfreeppages(unsigned long npages) {
+	paddr_t addr;
+	long i, first, found, np = (long)npages;
+	
+	if (freeRamFrames==NULL || nRamFrames<=0) return 0; 
+	spinlock_acquire(&freemem_lock);
+	for (i=0,first=found=-1; i<nRamFrames; i++) {
+		 if (freeRamFrames[i]) {
+			 if (i==0 || !freeRamFrames[i-1]) 
+			 	first = i; /* set first free in an interval */ 
+			 if (i-first+1 >= np)
+			 	found = first;
+		 }
+	 }
+	if (found>=0) {
+		 for (i=found; i<found+np; i++) {
+		 freeRamFrames[i] = (unsigned char)0;
+		 }
+		 addr = (paddr_t) found*PAGE_SIZE;
+	}
+	else {
+	 	addr = 0;
+	}
+	 spinlock_release(&freemem_lock);
+	 return addr;
+}
+
+static int freeppages(paddr_t addr, unsigned long npages){
+	long i, first, np=(long)npages;
+
+	if (freeRamFrames==NULL || nRamFrames<=0) return 0;
+	first = addr/PAGE_SIZE;
+	KASSERT(nRamFrames>first);
+	spinlock_acquire(&freemem_lock);
+
+	 for (i=first; i<first+np; i++) {
+	 	freeRamFrames[i] = (unsigned char)1;
+	 }
+
+	 spinlock_release(&freemem_lock);
+	 return 1;
 }

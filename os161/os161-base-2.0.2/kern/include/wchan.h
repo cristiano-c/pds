@@ -76,5 +76,10 @@ void wchan_sleep(struct wchan *wc, struct spinlock *lk);
 void wchan_wakeone(struct wchan *wc, struct spinlock *lk);
 void wchan_wakeall(struct wchan *wc, struct spinlock *lk);
 
+/*
+ * Lock and unlock the wait channel.
+ */
+void wchan_lock(struct wchan *wc);
+void wchan_unlock(struct wchan *wc);
 
 #endif /* _WCHAN_H_ */

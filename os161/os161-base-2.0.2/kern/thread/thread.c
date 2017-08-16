@@ -59,6 +59,7 @@
 struct wchan {
 	const char *wc_name;		/* name for this channel */
 	struct threadlist wc_threads;	/* list of waiting threads */
+	 struct spinlock wc_lock;        /* lock for mutual exclusion */
 };
 
 /* Master array of CPUs. */
@@ -185,7 +186,6 @@ cpu_create(unsigned hardware_number)
 
 	c->c_ipi_pending = 0;
 	c->c_numshootdown = 0;
-	spinlock_init(&c->c_ipi_lock);
 
 	result = cpuarray_add(&allcpus, c, &c->c_number);
 	if (result != 0) {
@@ -783,10 +783,13 @@ thread_exit(void)
 	 * Detach from our process. You might need to move this action
 	 * around, depending on how your wait/exit works.
 	 */
-	proc_remthread(cur);
+	if(cur->t_proc!=NULL)
+		proc_remthread(cur);
 
 	/* Make sure we *are* detached (move this only if you're sure!) */
 	KASSERT(cur->t_proc == NULL);
+
+
 
 	/* Check the stack guard band. */
 	thread_checkstack(cur);
@@ -960,6 +963,23 @@ thread_consider_migration(void)
  * arrangements should be made to free it after the wait channel is
  * destroyed.
  */
+
+/*
+ * Lock and unlock a wait channel, respectively.
+ */
+void
+wchan_lock(struct wchan *wc)
+{
+	spinlock_acquire(&wc->wc_lock);
+}
+
+void
+wchan_unlock(struct wchan *wc)
+{
+	spinlock_release(&wc->wc_lock);
+}
+
+
 struct wchan *
 wchan_create(const char *name)
 {
@@ -1124,7 +1144,7 @@ ipi_broadcast(int code)
 }
 
 /*
- * Send a TLB shootdown IPI to the specified CPU.
+ * Send a TLB shootdoFn IPI to the specified CPU.
  */
 void
 ipi_tlbshootdown(struct cpu *target, const struct tlbshootdown *mapping)
@@ -1207,3 +1227,4 @@ interprocessor_interrupt(void)
 	curcpu->c_ipi_pending = 0;
 	spinlock_release(&curcpu->c_ipi_lock);
 }
+
