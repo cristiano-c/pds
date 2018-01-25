@@ -109,60 +109,62 @@ syscall(struct trapframe *tf)
 				 (userptr_t)tf->tf_a1);
 		break;
 
-	    /* Add stuff here */
 
-			/* our own sys_write BEGIN */
-			case SYS_write:
+			/* Add stuff here */
+		case SYS_write:
 			err = sys_write((int)tf->tf_a0, (const void*) tf->tf_a1, (size_t) tf->tf_a2, (int*)&retval);
-			break;
-			/* our own sys_write END */
+		 break;
+
+		default:
+		    kprintf("Unknown syscall %d\n", callno);
+		    err = ENOSYS;
+		    break;
+		          }
 
 
-	    default:
-		kprintf("Unknown syscall %d\n", callno);
-		err = ENOSYS;
-		break;
-	}
+		          if (err) {
+		    /*
+		     * Return the error code. This gets converted at
+		     * userlevel to a return value of -1 and the error
+		     * code in errno.
+		     */
+		    tf->tf_v0 = err;
+		    tf->tf_a3 = 1;      /* signal an error */
+		          }
+		          else {
+		    /* Success. */
+		    tf->tf_v0 = retval;
+		    tf->tf_a3 = 0;      /* signal no error */
+		          }
 
+		          /*
+		           * Now, advance the program counter, to avoid restarting
+		           * the syscall over and over again.
+		           */
 
-	if (err) {
-		/*
-		 * Return the error code. This gets converted at
-		 * userlevel to a return value of -1 and the error
-		 * code in errno.
-		 */
-		tf->tf_v0 = err;
-		tf->tf_a3 = 1;      /* signal an error */
-	}
-	else {
-		/* Success. */
-		tf->tf_v0 = retval;
-		tf->tf_a3 = 0;      /* signal no error */
-	}
+		          tf->tf_epc += 4;
 
-	/*
-	 * Now, advance the program counter, to avoid restarting
-	 * the syscall over and over again.
-	 */
+		          /* Make sure the syscall code didn't forget to lower spl */
+		          KASSERT(curthread->t_curspl == 0);
+		          /* ...or leak any spinlocks */
+		          KASSERT(curthread->t_iplhigh_count == 0);
+		  }
 
-	tf->tf_epc += 4;
+		  /*
+		   * Enter user mode for a newly forked process.
+		   *
+		   * This function is provided as a reminder. You need to write
+		   * both it and the code that calls it.
+		   *
+		   * Thus, you can trash it and do things another way if you prefer.
+		   */
+		  void
+		  enter_forked_process(struct trapframe *tf)
+		  {
+				tf->tf_v0 = 0;
+		    tf->tf_a3 = 0;
+		    tf->tf_epc += 4;
+		    mips_usermode(tf);
+		  }
 
-	/* Make sure the syscall code didn't forget to lower spl */
-	KASSERT(curthread->t_curspl == 0);
-	/* ...or leak any spinlocks */
-	KASSERT(curthread->t_iplhigh_count == 0);
-}
-
-/*
- * Enter user mode for a newly forked process.
- *
- * This function is provided as a reminder. You need to write
- * both it and the code that calls it.
- *
- * Thus, you can trash it and do things another way if you prefer.
- */
-void
-enter_forked_process(struct trapframe *tf)
-{
-	(void)tf;
-}
+/*End */
